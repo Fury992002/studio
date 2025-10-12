@@ -18,6 +18,7 @@ export default function SavedDocumentPage() {
   const id = params.id as string;
   const firestore = useFirestore();
   const mainRef = useRef<HTMLElement>(null);
+  const invoicePreviewRef = useRef<HTMLDivElement>(null);
 
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -27,25 +28,33 @@ export default function SavedDocumentPage() {
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
 
   const handlePrint = () => {
-    if (!documentData || !mainRef.current) return;
-    
-    const printableElement = mainRef.current;
-    printableElement.classList.add('printing');
+    if (!invoicePreviewRef.current) return;
 
-    const originalTitle = document.title;
-    document.title = documentData.name;
+    const invoiceHtml = invoicePreviewRef.current.innerHTML;
     
-    window.print();
-    
-    document.title = originalTitle;
-    printableElement.classList.remove('printing');
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank', 'height=800,width=800');
+
+    if (printWindow) {
+      printWindow.document.write(invoiceHtml);
+      printWindow.document.close();
+      
+      // Use a timeout to ensure all content (especially images and fonts) is loaded
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    } else {
+      alert('Please allow popups for this website to print the document.');
+    }
   };
   
   useEffect(() => {
     if (documentData && searchParams.get('print') === 'true') {
        const timer = setTimeout(() => {
          handlePrint();
-       }, 500); // Small delay to ensure content is rendered
+       }, 1000); // Increased delay to ensure content is rendered
        return () => clearTimeout(timer);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,6 +159,33 @@ export default function SavedDocumentPage() {
     renderedHtml = renderedHtml.replace('{{calculations.shipping}}', calculations.shipping);
     renderedHtml = renderedHtml.replace('{{calculations.amountDue}}', calculations.amountDue);
 
+    // Replace the each loop for items with a simple placeholder, as we're injecting the rows directly
+    const itemsPlaceholderRegex = /\{\{#each items\}\}[\s\S]*?\{\{\/each\}\}/g;
+    const finalItemsHtml = items.map(item => `
+        <tr>
+            <td>${item.code || ''}</td>
+            <td>${item.type || ''}</td>
+            <td>${item.name}</td>
+            <td>${item.color || ''}</td>
+            <td>${item.qty}</td>
+            <td>${item.price.toFixed(2)}</td>
+            <td>${(item.qty * item.price).toFixed(2)}</td>
+        </tr>
+    `).join('');
+
+    // This is a simplified placeholder replacement. For a more robust solution,
+    // consider a library like Handlebars.js on the client side.
+    if (renderedHtml.match(itemsPlaceholderRegex)) {
+       renderedHtml = renderedHtml.replace(itemsPlaceholderRegex, finalItemsHtml);
+    } else {
+       // Fallback if the template structure changes
+       const tbodyRegex = /<tbody>\s*<\/tbody>/;
+       if(renderedHtml.match(tbodyRegex)) {
+          renderedHtml = renderedHtml.replace(tbodyRegex, `<tbody>${finalItemsHtml}</tbody>`);
+       }
+    }
+
+
     return renderedHtml;
   };
 
@@ -181,7 +217,7 @@ export default function SavedDocumentPage() {
   }
 
   return (
-    <main key={id} ref={mainRef} className="min-h-screen bg-gray-100 p-4">
+    <main ref={mainRef} className="min-h-screen bg-gray-100 p-4">
         <div className="container mx-auto mb-4 flex justify-between items-center no-print">
             <h1 className="text-2xl font-bold">{documentData.name}</h1>
             <div>
@@ -196,7 +232,7 @@ export default function SavedDocumentPage() {
             </div>
         </div>
         <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container">
-            <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
+            <div ref={invoicePreviewRef} dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
         </div>
     </main>
   );
