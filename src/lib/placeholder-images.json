@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "invoice-template-placeholder",
+      "description": "A placeholder image showing an abstract invoice template design.",
+      "imageUrl": "https://picsum.photos/seed/invoiceflow/600/800",
+      "imageHint": "invoice template"
+    }
+  ]
+}

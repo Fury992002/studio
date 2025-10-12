@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user (matches Firebase Auth UID)."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "Document": {
+      "title": "Document",
+      "type": "object",
+      "description": "Represents a saved invoice or quotation.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The generated name of the document."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this document."
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "invoiceDetailsData": {
+              "type": "object"
+            },
+            "clientData": {
+              "type": "object"
+            },
+            "items": {
+              "type": "array"
+            },
+            "totalsData": {
+              "type": "object"
+            },
+            "termsData": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "required": [
+        "name",
+        "userId",
+        "data"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profiles. User ID is used for path-based ownership."
+    },
+    "/documents/{documentId}": {
+      "schema": {
+        "$ref": "#/entities/Document"
+      },
+      "description": "Stores all invoices and quotations for all users."
+    }
+  }
+}

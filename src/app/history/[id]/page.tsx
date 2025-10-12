@@ -1,0 +1,273 @@
+'use client';
+
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { 
+  type SavedDocument, 
+  INVOICE_TEMPLATE_HTML
+} from '../../page';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+
+export default function SavedDocumentPage() {
+  const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const id = params.id as string;
+  const firestore = useFirestore();
+
+  const originalTitleRef = useRef('');
+  const isPrintingRef = useRef(false);
+
+  const docRef = useMemoFirebase(() => {
+    if (!firestore || !id) return null;
+    return doc(firestore, 'documents', id);
+  }, [firestore, id]);
+
+  const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
+
+  useEffect(() => {
+    // Store the original document title once on mount
+    if (typeof window !== 'undefined') {
+      originalTitleRef.current = document.title;
+    }
+
+    // Cleanup function to restore title on unmount
+    return () => {
+      if (typeof window !== 'undefined' && originalTitleRef.current) {
+        document.title = originalTitleRef.current;
+      }
+    };
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    if (!documentData || isPrintingRef.current) return;
+
+    const mainElement = document.querySelector('main.printable');
+    if (!mainElement) return;
+
+    let printCleanup: (() => void) | null = null;
+
+    const cleanup = () => {
+      if (mainElement) {
+        mainElement.classList.remove('printing');
+      }
+      if (typeof window !== 'undefined') {
+        document.title = originalTitleRef.current;
+      }
+      isPrintingRef.current = false;
+      
+      // Remove the event listener to prevent memory leaks and redundant calls
+      window.removeEventListener('afterprint', afterPrintHandler);
+    };
+    
+    const afterPrintHandler = () => {
+      cleanup();
+    };
+
+    window.addEventListener('afterprint', afterPrintHandler);
+    
+    isPrintingRef.current = true;
+    document.title = documentData.name;
+    mainElement.classList.add('printing');
+
+    const printTimeout = setTimeout(() => {
+      if (isPrintingRef.current) {
+        window.print();
+      }
+      // Set a fallback cleanup in case 'afterprint' doesn't fire
+      const fallbackTimeout = setTimeout(() => {
+        if (isPrintingRef.current) {
+          cleanup();
+        }
+      }, 1000);
+
+      // The cleanup for the fallback timeout
+      printCleanup = () => clearTimeout(fallbackTimeout);
+
+    }, 500);
+
+    // This is the cleanup function for the handlePrint call itself.
+    // It will be called if the component unmounts before printing is complete.
+    return () => {
+      clearTimeout(printTimeout);
+      if (printCleanup) {
+        printCleanup();
+      }
+      if (isPrintingRef.current) {
+        cleanup(); // Perform immediate cleanup
+      }
+    };
+
+  }, [documentData]);
+
+  useEffect(() => {
+    let printCleanup: (() => void) | undefined;
+    if (documentData && searchParams.get('print') === 'true' && !isPrintingRef.current) {
+      printCleanup = handlePrint();
+    }
+    // This cleanup function will be called when the component unmounts
+    // or when dependencies change, ensuring any pending print job is cancelled.
+    return () => {
+      if (printCleanup) {
+        printCleanup();
+      }
+    };
+  }, [documentData, searchParams, handlePrint]);
+
+
+  const calculations = useMemo(() => {
+    if (!documentData) return null;
+    
+    const { items, totalsData } = documentData.data;
+    const totalOrder = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+    
+    let totalDiscountAmount = 0;
+    const discountsHtml = (totalsData.discounts || []).map(discount => {
+      let discountAmount = 0;
+      const discountValueStr = discount.value || '0';
+      if (discountValueStr.includes('%')) {
+        const percentage = parseFloat(discountValueStr.replace('%', '')) || 0;
+        discountAmount = (totalOrder * percentage) / 100;
+      } else {
+        discountAmount = parseFloat(discountValueStr) || 0;
+      }
+      totalDiscountAmount += discountAmount;
+      return `<p><span>${discount.title}:</span> <span>-${discountAmount.toFixed(2)}</span></p>`;
+    }).join('');
+
+    const totalAfterDiscount = totalOrder - totalDiscountAmount;
+    const vatAmount = totalsData.applyVat ? totalAfterDiscount * 0.14 : 0;
+    const taxAmount = totalsData.applyTax ? totalAfterDiscount * 0.01 : 0;
+    const shipping = parseFloat(totalsData.shipping || '0') || 0;
+    const amountDue = totalAfterDiscount + vatAmount - taxAmount + shipping;
+
+    return {
+      totalOrder: totalOrder.toFixed(2),
+      totalDiscountAmount: totalDiscountAmount.toFixed(2),
+      totalAfterDiscount: totalAfterDiscount.toFixed(2),
+      vatAmount: vatAmount.toFixed(2),
+      taxAmount: taxAmount.toFixed(2),
+      shipping: shipping.toFixed(2),
+      amountDue: amountDue.toFixed(2),
+      discountsHtml: discountsHtml,
+    };
+  }, [documentData]);
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString; 
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = date.getUTCFullYear();
+        return `${day}-${month}-${year}`;
+    } catch (e) {
+        return dateString;
+    }
+  };
+
+  const renderInvoice = () => {
+    if (!documentData || !calculations) return '';
+    let renderedHtml = INVOICE_TEMPLATE_HTML;
+    
+    const { invoiceDetailsData, clientData, items, totalsData, termsData } = documentData.data;
+
+    const docType = invoiceDetailsData.documentType || 'Invoice';
+    renderedHtml = renderedHtml.replace(/\{\{documentType\}\}/g, docType);
+    
+    const invoiceNo = [invoiceDetailsData.invoiceNo1, invoiceDetailsData.invoiceNo2, invoiceDetailsData.invoiceNo3].filter(Boolean).join('-');
+    renderedHtml = renderedHtml.replace('{{invoice.number}}', invoiceNo || '');
+    renderedHtml = renderedHtml.replace('{{invoice.date}}', formatDate(invoiceDetailsData.date) || '');
+
+    renderedHtml = renderedHtml.replace('{{client.company}}', clientData.company || '');
+    renderedHtml = renderedHtml.replace('{{client.client}}', clientData.client || '');
+    renderedHtml = renderedHtml.replace('{{client.project}}', clientData.project || '');
+    renderedHtml = renderedHtml.replace('{{client.designer}}', clientData.designer || '');
+    renderedHtml = renderedHtml.replace('{{client.area}}', clientData.area || '');
+    renderedHtml = renderedHtml.replace('{{client.location}}', clientData.location || '');
+    renderedHtml = renderedHtml.replace('{{client.contactPerson}}', clientData.contactPerson || '');
+    renderedHtml = renderedHtml.replace('{{client.number}}', clientData.number || '');
+
+    const itemsHtml = items.map(item => `
+      <tr>
+        <td>${item.code}</td>
+        <td>${item.type}</td>
+        <td>${item.name}</td>
+        <td>${item.color}</td>
+        <td>${item.qty}</td>
+        <td>${item.price.toFixed(2)}</td>
+        <td>${(item.qty * item.price).toFixed(2)}</td>
+      </tr>
+    `).join('');
+    renderedHtml = renderedHtml.replace(/\{\{#each items\}\}[\s\S]*?\{\{\/each\}\}/, itemsHtml);
+
+    renderedHtml = renderedHtml.replace('{{terms.paymentMethod}}', termsData.paymentMethod || '');
+    renderedHtml = renderedHtml.replace('{{terms.termsConditions}}', termsData.termsConditions || '');
+    
+    renderedHtml = renderedHtml.replace('{{calculations.totalOrder}}', calculations.totalOrder);
+    renderedHtml = renderedHtml.replace('{{{calculations.discountsHtml}}}', calculations.discountsHtml);
+    renderedHtml = renderedHtml.replace('{{calculations.totalAfterDiscount}}', calculations.totalAfterDiscount);
+    renderedHtml = renderedHtml.replace('{{calculations.vatAmount}}', calculations.vatAmount);
+    renderedHtml = renderedHtml.replace('{{calculations.taxAmount}}', calculations.taxAmount);
+    renderedHtml = renderedHtml.replace('{{calculations.shipping}}', calculations.shipping);
+    renderedHtml = renderedHtml.replace('{{calculations.amountDue}}', calculations.amountDue);
+
+    return renderedHtml;
+  };
+
+  if (isLoading) {
+    return (
+        <main className="min-h-screen bg-gray-100 p-4">
+            <div className="container mx-auto mb-4 flex justify-between items-center">
+                <Skeleton className="h-8 w-1/4" />
+                <div className="flex space-x-2">
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto p-8">
+                <Skeleton className="h-[800px] w-full" />
+            </div>
+        </main>
+    );
+  }
+  
+  if (!documentData) {
+    return (
+        <div className="container mx-auto p-4 text-center">
+            <h1 className="text-2xl font-bold mb-4">Document not found</h1>
+            <p>The requested document could not be found. It might have been deleted.</p>
+            <Button className="mt-4" onClick={() => router.push('/history')}>Back to History</Button>
+        </div>
+    );
+  }
+
+  return (
+    <main key={id} className="min-h-screen bg-gray-100 p-4 printable">
+        <div className="container mx-auto mb-4 flex justify-between items-center no-print">
+            <h1 className="text-2xl font-bold">{documentData.name}</h1>
+            <div>
+                 <Button variant="outline" className="mr-2" onClick={handlePrint}>Print / Save as PDF</Button>
+                 <Button
+                    onClick={() => {
+                        // Explicitly set printing to false before navigating
+                        isPrintingRef.current = false;
+                        router.push('/history');
+                    }}
+                 >
+                    Back to History
+                 </Button>
+            </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-container">
+            <div style={{ transform: 'scale(1)', transformOrigin: 'top' }}>
+                <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
+            </div>
+        </div>
+    </main>
+  );
+}

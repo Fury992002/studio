@@ -1,0 +1,47 @@
+/**
+ * @fileoverview Firestore Security Rules for Prototyping.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes rapid prototyping by granting public read and write access to all documents.
+ * It is intended for development and testing purposes ONLY and should NOT be used in a production environment.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profiles, accessible by anyone.
+ * - /documents/{documentId}: Stores invoices and quotations, accessible by anyone.
+ *
+ * Key Security Decisions:
+ * - All data is publicly readable and writable.
+ * - No user authentication or authorization is required.
+ * - This configuration is highly insecure and should be replaced with a production-ready ruleset before deployment.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Allows anyone to read and write user profiles.
+     * @path /users/{userId}
+     * @allow (get, list) Anyone can read user profiles.
+     * @allow (create, update, delete) Anyone can create, update, or delete user profiles.
+     * @deny (none) There are no restrictions on user profiles.
+     * @principle Grants full public access to user profiles for prototyping purposes.
+     */
+    match /users/{userId} {
+      allow get, list: if true;
+      allow create, update, delete: if true;
+    }
+
+    /**
+     * @description Allows anyone to read and write invoices and quotations.
+     * @path /documents/{documentId}
+     * @allow (get, list) Anyone can read invoices and quotations.
+     * @allow (create, update, delete) Anyone can create, update, or delete invoices and quotations.
+     * @deny (none) There are no restrictions on invoices and quotations.
+     * @principle Grants full public access to invoices and quotations for prototyping purposes.
+     */
+    match /documents/{documentId} {
+      allow get, list: if true;
+      allow create, update, delete: if true;
+    }
+  }
+}
