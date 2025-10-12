@@ -758,7 +758,7 @@ const PageContent = () => {
         <div className="w-full md:w-2/3 lg:w-2/3">
           <div className="sticky top-4">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="invoice-container" style={{ transform: 'scale(1)', transformOrigin: 'top left' }}>
+               <div className="md:scale-100 md:origin-top-left scale-[0.5] origin-top">
                 <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
               </div>
             </div>
@@ -770,16 +770,18 @@ const PageContent = () => {
 }
 
 function ProtectedPage() {
-    const { isAuthenticated, isLoading } = useAuthContext();
+    const { isAuthenticated, hasPassedAuthCheck, isLoading } = useAuthContext();
     const router = useRouter();
 
     useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
+        // Only redirect if the initial auth check has completed and user is not authenticated.
+        if (hasPassedAuthCheck && !isAuthenticated) {
             router.push('/login');
         }
-    }, [isAuthenticated, isLoading, router]);
+    }, [isAuthenticated, hasPassedAuthCheck, router]);
 
-    if (isLoading || !isAuthenticated) {
+    // Show loading state until the initial auth check is done.
+    if (isLoading || !hasPassedAuthCheck) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <p>Loading...</p>
@@ -787,7 +789,18 @@ function ProtectedPage() {
         );
     }
 
-    return <PageContent />;
+    // If check is done and user is authenticated, show the page content.
+    if (isAuthenticated) {
+        return <PageContent />;
+    }
+
+    // If check is done and user is not authenticated, they are being redirected.
+    // Show a loading or blank state to prevent content flash.
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+          <p>Redirecting to login...</p>
+      </div>
+    );
 }
 
 

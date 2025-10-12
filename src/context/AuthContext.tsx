@@ -1,28 +1,27 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { initializeFirebase } from '@/firebase'; // Use client provider to get auth
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: User | null;
+  hasPassedAuthCheck: boolean;
   loginWithFirebase: (email: string, pass: string) => Promise<void>;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_KEY = 'invoice_flow_auth';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [hasPassedAuthCheck, setHasPassedAuthCheck] = useState(false);
 
   useEffect(() => {
-    // We rely on Firebase's auth state persistence, not our own session storage.
     const auth = getAuth(initializeFirebase().firebaseApp);
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
@@ -33,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsAuthenticated(false);
         }
         setIsLoading(false);
+        setHasPassedAuthCheck(true); // Mark that the initial check is complete
     });
 
     return () => unsubscribe();
@@ -43,11 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         await signInWithEmailAndPassword(auth, email, pass);
     } catch (error: any) {
-        // If sign-in fails because the user does not exist, create the user.
         if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
             await createUserWithEmailAndPassword(auth, email, pass);
         } else {
-            // Re-throw other errors.
             throw error;
         }
     }
@@ -55,11 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     const auth = getAuth(initializeFirebase().firebaseApp);
-    auth.signOut();
+    signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, loginWithFirebase, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, hasPassedAuthCheck, loginWithFirebase, logout }}>
       {children}
     </AuthContext.Provider>
   );

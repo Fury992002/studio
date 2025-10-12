@@ -44,72 +44,54 @@ export default function SavedDocumentPage() {
 
   const handlePrint = useCallback(() => {
     if (!documentData || isPrintingRef.current) return;
-
+  
     const mainElement = document.querySelector('main.printable');
     if (!mainElement) return;
-
-    let printCleanup: (() => void) | null = null;
-
-    const cleanup = () => {
-      if (mainElement) {
-        mainElement.classList.remove('printing');
-      }
-      if (typeof window !== 'undefined') {
-        document.title = originalTitleRef.current;
-      }
-      isPrintingRef.current = false;
-      
-      // Remove the event listener to prevent memory leaks and redundant calls
-      window.removeEventListener('afterprint', afterPrintHandler);
-    };
-    
-    const afterPrintHandler = () => {
-      cleanup();
-    };
-
-    window.addEventListener('afterprint', afterPrintHandler);
-    
+  
     isPrintingRef.current = true;
     document.title = documentData.name;
     mainElement.classList.add('printing');
-
-    const printTimeout = setTimeout(() => {
-      if (isPrintingRef.current) {
-        window.print();
-      }
-      // Set a fallback cleanup in case 'afterprint' doesn't fire
-      const fallbackTimeout = setTimeout(() => {
-        if (isPrintingRef.current) {
-          cleanup();
-        }
-      }, 1000);
-
-      // The cleanup for the fallback timeout
-      printCleanup = () => clearTimeout(fallbackTimeout);
-
-    }, 500);
-
-    // This is the cleanup function for the handlePrint call itself.
-    // It will be called if the component unmounts before printing is complete.
-    return () => {
-      clearTimeout(printTimeout);
-      if (printCleanup) {
-        printCleanup();
-      }
-      if (isPrintingRef.current) {
-        cleanup(); // Perform immediate cleanup
-      }
+  
+    // This allows the DOM to update with the 'printing' class before we call print()
+    requestAnimationFrame(() => {
+      window.print();
+    });
+  
+    const afterPrintHandler = () => {
+      mainElement.classList.remove('printing');
+      document.title = originalTitleRef.current;
+      isPrintingRef.current = false;
+      window.removeEventListener('afterprint', afterPrintHandler);
     };
-
+  
+    window.addEventListener('afterprint', afterPrintHandler);
+  
+    // Fallback cleanup in case 'afterprint' doesn't fire (e.g., if the print dialog is cancelled)
+    const printCancelTimeout = setTimeout(() => {
+      if (isPrintingRef.current) {
+        afterPrintHandler();
+      }
+    }, 1000);
+  
+    return () => {
+      clearTimeout(printCancelTimeout);
+      if (isPrintingRef.current) {
+        afterPrintHandler();
+      }
+      window.removeEventListener('afterprint', afterPrintHandler);
+    };
   }, [documentData]);
 
   useEffect(() => {
     let printCleanup: (() => void) | undefined;
     if (documentData && searchParams.get('print') === 'true' && !isPrintingRef.current) {
-      printCleanup = handlePrint();
+       // A small delay ensures the component has fully rendered before printing
+      const timer = setTimeout(() => {
+        printCleanup = handlePrint();
+      }, 500);
+      return () => clearTimeout(timer);
     }
-    // This cleanup function will be called when the component unmounts
-    // or when dependencies change, ensuring any pending print job is cancelled.
+    
     return () => {
       if (printCleanup) {
         printCleanup();
