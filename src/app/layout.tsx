@@ -3,11 +3,20 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 import { AuthProvider } from '@/context/AuthContext';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'Invoice Management',
   description: 'Generate invoices from templates effortlessly.',
 };
+
+function RootLoading() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-black">
+      <p className="text-white">Loading...</p>
+    </div>
+  )
+}
 
 export default function RootLayout({
   children,
@@ -24,7 +33,9 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <AuthProvider>
           <FirebaseClientProvider>
-            {children}
+            <Suspense fallback={<RootLoading />}>
+              {children}
+            </Suspense>
           </FirebaseClientProvider>
         </AuthProvider>
         <Toaster />

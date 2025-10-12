@@ -530,11 +530,11 @@ const PageContent = () => {
   
   return (
     <FormProvider {...methods}>
-      <main className="flex min-h-screen bg-gray-100 p-4 gap-4">
+      <main className="flex flex-col md:flex-row min-h-screen bg-gray-100 p-4 gap-4">
         <Suspense fallback={<div>Loading...</div>}>
           <EditDocumentLoader onDocumentLoad={handleDocumentLoad} />
         </Suspense>
-        <div className="w-1/3 space-y-4">
+        <div className="w-full md:w-1/3 lg:w-1/3 space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{docToEditId ? 'Edit Document' : 'Controls'}</CardTitle>
@@ -755,7 +755,7 @@ const PageContent = () => {
           </Card>
         </div>
 
-        <div className="w-2/3">
+        <div className="w-full md:w-2/3 lg:w-2/3">
           <div className="sticky top-4">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="invoice-container" style={{ transform: 'scale(1)', transformOrigin: 'top left' }}>

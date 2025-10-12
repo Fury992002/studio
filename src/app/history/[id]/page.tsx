@@ -222,7 +222,7 @@ export default function SavedDocumentPage() {
   if (isLoading) {
     return (
         <main className="min-h-screen bg-gray-100 p-4">
-            <div className="container mx-auto mb-4 flex justify-between items-center">
+            <div className="container mx-auto mb-4 flex justify-between items-center no-print">
                 <Skeleton className="h-8 w-1/4" />
                 <div className="flex space-x-2">
                     <Skeleton className="h-10 w-32" />
