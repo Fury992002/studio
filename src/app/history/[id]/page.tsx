@@ -19,7 +19,7 @@ export default function SavedDocumentPage() {
   const firestore = useFirestore();
 
   const originalTitleRef = useRef('');
-  const isPrintingRef = useRef(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -29,73 +29,52 @@ export default function SavedDocumentPage() {
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
 
   useEffect(() => {
-    // Store the original document title once on mount
     if (typeof window !== 'undefined') {
       originalTitleRef.current = document.title;
     }
-
-    // Cleanup function to restore title on unmount
-    return () => {
-      if (typeof window !== 'undefined' && originalTitleRef.current) {
-        document.title = originalTitleRef.current;
-      }
-    };
   }, []);
 
   const handlePrint = useCallback(() => {
-    if (!documentData || isPrintingRef.current) return;
-  
-    const mainElement = document.querySelector('main.printable');
-    if (!mainElement) return;
-  
-    isPrintingRef.current = true;
+    if (!documentData) return;
     document.title = documentData.name;
-    mainElement.classList.add('printing');
-  
-    // This allows the DOM to update with the 'printing' class before we call print()
-    requestAnimationFrame(() => {
-      window.print();
-    });
-  
-    const afterPrintHandler = () => {
-      mainElement.classList.remove('printing');
-      document.title = originalTitleRef.current;
-      isPrintingRef.current = false;
-      window.removeEventListener('afterprint', afterPrintHandler);
-    };
-  
-    window.addEventListener('afterprint', afterPrintHandler);
-  
-    // Fallback cleanup in case 'afterprint' doesn't fire (e.g., if the print dialog is cancelled)
-    const printCancelTimeout = setTimeout(() => {
-      if (isPrintingRef.current) {
-        afterPrintHandler();
-      }
-    }, 1000);
-  
-    return () => {
-      clearTimeout(printCancelTimeout);
-      if (isPrintingRef.current) {
-        afterPrintHandler();
-      }
-      window.removeEventListener('afterprint', afterPrintHandler);
-    };
+    window.print();
   }, [documentData]);
 
   useEffect(() => {
-    let printCleanup: (() => void) | undefined;
-    if (documentData && searchParams.get('print') === 'true' && !isPrintingRef.current) {
-       // A small delay ensures the component has fully rendered before printing
-      const timer = setTimeout(() => {
-        printCleanup = handlePrint();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-    
-    return () => {
-      if (printCleanup) {
-        printCleanup();
+    const handleBeforePrint = () => {
+      setIsPrinting(true);
+    };
+
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+      document.title = originalTitleRef.current;
+    };
+
+    const printMediaQuery = window.matchMedia('print');
+    printMediaQuery.addEventListener('change', (e) => {
+      if (e.matches) {
+        handleBeforePrint();
+      } else {
+        handleAfterPrint();
       }
+    });
+    
+    // For browsers that use beforeprint/afterprint events
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    // Initial check for print param
+    if (documentData && searchParams.get('print') === 'true') {
+       const timer = setTimeout(() => {
+         handlePrint();
+       }, 500);
+       return () => clearTimeout(timer);
+    }
+
+    return () => {
+      printMediaQuery.removeEventListener('change', () => {});
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
     };
   }, [documentData, searchParams, handlePrint]);
 
@@ -229,15 +208,13 @@ export default function SavedDocumentPage() {
   }
 
   return (
-    <main key={id} className="min-h-screen bg-gray-100 p-4 printable">
+    <main key={id} className={`min-h-screen bg-gray-100 p-4 ${isPrinting ? 'printing' : 'printable'}`}>
         <div className="container mx-auto mb-4 flex justify-between items-center no-print">
             <h1 className="text-2xl font-bold">{documentData.name}</h1>
             <div>
                  <Button variant="outline" className="mr-2" onClick={handlePrint}>Print / Save as PDF</Button>
                  <Button
                     onClick={() => {
-                        // Explicitly set printing to false before navigating
-                        isPrintingRef.current = false;
                         router.push('/history');
                     }}
                  >

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase'; // Use client provider to get auth
+import { initializeFirebase } from '@/firebase';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -32,10 +32,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsAuthenticated(false);
         }
         setIsLoading(false);
-        setHasPassedAuthCheck(true); // Mark that the initial check is complete
+        setHasPassedAuthCheck(true);
     });
 
-    return () => unsubscribe();
+    const handleBeforeUnload = () => {
+        // We don't sign out here as it can race with page navigation
+        // Instead, we rely on the protected route logic to redirect
+        // and the login page to handle session state.
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+        unsubscribe();
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        // On unmount of the entire app, we ensure logout.
+        if (auth.currentUser) {
+            signOut(auth);
+        }
+    };
   }, []);
 
   const loginWithFirebase = async (email: string, pass: string) => {

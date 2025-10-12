@@ -758,7 +758,7 @@ const PageContent = () => {
         <div className="w-full md:w-2/3 lg:w-2/3">
           <div className="sticky top-4">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-               <div className="md:scale-100 md:origin-top-left scale-[0.5] origin-top">
+               <div className="w-full md:scale-100 md:origin-top-left scale-[0.45] sm:scale-50 origin-top-center">
                 <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
               </div>
             </div>
