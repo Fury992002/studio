@@ -1,78 +1,72 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase';
+import { getAuth, signInAnonymously, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { initializeFirebase } from '@/firebase'; // Correct import path
+
+const SESSION_KEY = 'invoice-app-authenticated';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: User | null;
   hasPassedAuthCheck: boolean;
-  loginWithFirebase: (email: string, pass: string) => Promise<void>;
+  handleLogin: (isSuccess: boolean) => void;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // This state is now derived from sessionStorage
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [hasPassedAuthCheck, setHasPassedAuthCheck] = useState(false);
 
   useEffect(() => {
+    // On initial load, check sessionStorage
+    const sessionAuthenticated = sessionStorage.getItem(SESSION_KEY) === 'true';
+    setIsAuthenticated(sessionAuthenticated);
+
     const auth = getAuth(initializeFirebase().firebaseApp);
+    
+    // Ensure we always have a Firebase user, even if anonymous
+    if (!auth.currentUser) {
+        signInAnonymously(auth).catch(error => {
+            console.error("Anonymous sign-in failed:", error);
+        });
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        if (firebaseUser) {
-            setUser(firebaseUser);
-            setIsAuthenticated(true);
-        } else {
-            setUser(null);
-            setIsAuthenticated(false);
-        }
-        setIsLoading(false);
-        setHasPassedAuthCheck(true);
+      setUser(firebaseUser); // Keep track of the Firebase user
+      setIsLoading(false);
+      setHasPassedAuthCheck(true);
     });
 
-    const handleBeforeUnload = () => {
-        // We don't sign out here as it can race with page navigation
-        // Instead, we rely on the protected route logic to redirect
-        // and the login page to handle session state.
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-        unsubscribe();
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-        // On unmount of the entire app, we ensure logout.
-        if (auth.currentUser) {
-            signOut(auth);
-        }
-    };
+    return () => unsubscribe();
   }, []);
 
-  const loginWithFirebase = async (email: string, pass: string) => {
-    const auth = getAuth(initializeFirebase().firebaseApp);
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (error: any) {
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            await createUserWithEmailAndPassword(auth, email, pass);
-        } else {
-            throw error;
-        }
+  const handleLogin = (isSuccess: boolean) => {
+    if (isSuccess) {
+      sessionStorage.setItem(SESSION_KEY, 'true');
+      setIsAuthenticated(true);
+    } else {
+      sessionStorage.removeItem(SESSION_KEY);
+      setIsAuthenticated(false);
     }
   };
 
   const logout = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setIsAuthenticated(false);
+    // Optionally, sign out the Firebase user too if desired
     const auth = getAuth(initializeFirebase().firebaseApp);
     signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, hasPassedAuthCheck, loginWithFirebase, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, hasPassedAuthCheck, handleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -10,14 +10,6 @@ export const metadata: Metadata = {
   description: 'Generate invoices from templates effortlessly.',
 };
 
-function RootLoading() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-black">
-      <p className="text-white">Loading...</p>
-    </div>
-  )
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,7 +25,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <AuthProvider>
           <FirebaseClientProvider>
-            <Suspense fallback={<RootLoading />}>
+            <Suspense>
               {children}
             </Suspense>
           </FirebaseClientProvider>

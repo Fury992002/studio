@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { 
@@ -18,9 +18,6 @@ export default function SavedDocumentPage() {
   const id = params.id as string;
   const firestore = useFirestore();
 
-  const originalTitleRef = useRef('');
-  const [isPrinting, setIsPrinting] = useState(false);
-
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
     return doc(firestore, 'documents', id);
@@ -28,55 +25,23 @@ export default function SavedDocumentPage() {
 
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      originalTitleRef.current = document.title;
-    }
-  }, []);
-
-  const handlePrint = useCallback(() => {
+  const handlePrint = () => {
     if (!documentData) return;
+    const originalTitle = document.title;
     document.title = documentData.name;
     window.print();
-  }, [documentData]);
-
+    document.title = originalTitle;
+  };
+  
   useEffect(() => {
-    const handleBeforePrint = () => {
-      setIsPrinting(true);
-    };
-
-    const handleAfterPrint = () => {
-      setIsPrinting(false);
-      document.title = originalTitleRef.current;
-    };
-
-    const printMediaQuery = window.matchMedia('print');
-    printMediaQuery.addEventListener('change', (e) => {
-      if (e.matches) {
-        handleBeforePrint();
-      } else {
-        handleAfterPrint();
-      }
-    });
-    
-    // For browsers that use beforeprint/afterprint events
-    window.addEventListener('beforeprint', handleBeforePrint);
-    window.addEventListener('afterprint', handleAfterPrint);
-
-    // Initial check for print param
     if (documentData && searchParams.get('print') === 'true') {
        const timer = setTimeout(() => {
          handlePrint();
-       }, 500);
+       }, 500); // Small delay to ensure content is rendered
        return () => clearTimeout(timer);
     }
-
-    return () => {
-      printMediaQuery.removeEventListener('change', () => {});
-      window.removeEventListener('beforeprint', handleBeforePrint);
-      window.removeEventListener('afterprint', handleAfterPrint);
-    };
-  }, [documentData, searchParams, handlePrint]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentData, searchParams]);
 
 
   const calculations = useMemo(() => {
@@ -183,7 +148,7 @@ export default function SavedDocumentPage() {
   if (isLoading) {
     return (
         <main className="min-h-screen bg-gray-100 p-4">
-            <div className="container mx-auto mb-4 flex justify-between items-center no-print">
+            <div className="container mx-auto mb-4 flex justify-between items-center">
                 <Skeleton className="h-8 w-1/4" />
                 <div className="flex space-x-2">
                     <Skeleton className="h-10 w-32" />
@@ -208,8 +173,8 @@ export default function SavedDocumentPage() {
   }
 
   return (
-    <main key={id} className={`min-h-screen bg-gray-100 p-4 ${isPrinting ? 'printing' : 'printable'}`}>
-        <div className="container mx-auto mb-4 flex justify-between items-center no-print">
+    <main key={id} className="min-h-screen bg-gray-100 p-4">
+        <div className="container mx-auto mb-4 flex justify-between items-center">
             <h1 className="text-2xl font-bold">{documentData.name}</h1>
             <div>
                  <Button variant="outline" className="mr-2" onClick={handlePrint}>Print / Save as PDF</Button>
@@ -222,10 +187,8 @@ export default function SavedDocumentPage() {
                  </Button>
             </div>
         </div>
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-container">
-            <div style={{ transform: 'scale(1)', transformOrigin: 'top' }}>
-                <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
-            </div>
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto">
+            <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
         </div>
     </main>
   );

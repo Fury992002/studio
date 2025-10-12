@@ -89,8 +89,7 @@ export type ClientData = z.infer<typeof clientSchema>;
 export type ItemData = z.infer<typeof itemSchema>;
 export type TotalsData = z.infer<typeof totalsSchema>;
 export type TermsData = z.infer<typeof termsSchema>;
-export type FullFormData = z.infer<typeof fullFormSchema>;
-
+export type FullFormData = z;
 
 export const INVOICE_TEMPLATE_HTML = `
 <!DOCTYPE html>
@@ -530,11 +529,11 @@ const PageContent = () => {
   
   return (
     <FormProvider {...methods}>
-      <main className="flex flex-col md:flex-row min-h-screen bg-gray-100 p-4 gap-4">
+      <main className="flex min-h-screen bg-gray-100 p-4 gap-4">
         <Suspense fallback={<div>Loading...</div>}>
           <EditDocumentLoader onDocumentLoad={handleDocumentLoad} />
         </Suspense>
-        <div className="w-full md:w-1/3 lg:w-1/3 space-y-4">
+        <div className="w-1/3 space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{docToEditId ? 'Edit Document' : 'Controls'}</CardTitle>
@@ -755,12 +754,10 @@ const PageContent = () => {
           </Card>
         </div>
 
-        <div className="w-full md:w-2/3 lg:w-2/3">
+        <div className="w-2/3">
           <div className="sticky top-4">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-               <div className="w-full overflow-x-auto">
-                <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
-              </div>
+              <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
             </div>
           </div>
         </div>

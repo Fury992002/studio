@@ -11,20 +11,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Lock, FileText } from 'lucide-react';
 
 const CORRECT_PASSWORD = 'Align@2021';
-const HARDCODED_EMAIL = 'history-user@invoiceflow.com';
-const HARDCODED_PASSWORD = 'defaultPassword123'; // This is a dummy password
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { loginWithFirebase, isAuthenticated } = useAuthContext();
+  const { handleLogin, isAuthenticated } = useAuthContext();
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     if (isAuthenticated) {
       // If user is already authenticated, redirect them away from login
-      router.push('/');
+      router.push('/welcome');
     }
   }, [isAuthenticated, router]);
 
@@ -33,21 +31,8 @@ export default function LoginPage() {
     setError('');
 
     if (password === CORRECT_PASSWORD) {
-      // This will attempt to sign in with the hardcoded user.
-      // If the user doesn't exist, it will be created by the login function.
-      loginWithFirebase(HARDCODED_EMAIL, HARDCODED_PASSWORD).then(() => {
-        // Use window.location.href for a full redirect.
-        // This solves the race condition where the welcome page checks for auth
-        // before the context has had time to update after the redirect.
-        window.location.href = '/welcome';
-      }).catch((err) => {
-         setError('Failed to authenticate with the backend. Please try again.');
-         toast({
-            variant: 'destructive',
-            title: 'Authentication Failed',
-            description: 'Could not connect to the authentication service.',
-         });
-      });
+      handleLogin(true); // Signal that login was successful
+      router.push('/welcome');
     } else {
       setError('Incorrect password. Please try again.');
       toast({
