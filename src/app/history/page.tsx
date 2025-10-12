@@ -26,7 +26,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query } from 'firebase/firestore';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -46,10 +46,10 @@ export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
 
   const documentsQuery = useMemoFirebase(() => {
-    // Ensure we only query when we have a user and they are not anonymous
-    if (!user || user.isAnonymous || !firestore) return null;
-    return query(collection(firestore, 'documents'), where('userId', '==', user.uid));
-  }, [firestore, user]);
+    // We query for ALL documents, regardless of user.
+    if (!firestore) return null;
+    return query(collection(firestore, 'documents'));
+  }, [firestore]);
 
   const { data: documents, isLoading: isLoadingDocuments } = useCollection<SavedDocument>(documentsQuery);
 
@@ -202,10 +202,12 @@ export default function HistoryPage() {
   );
   
   const renderContent = () => {
+    // We check for isUserLoading to make sure Firebase auth has initialized.
     if (isUserLoading || (isLoadingDocuments && documentsQuery)) {
         return renderLoadingSkeleton();
     }
-    if (!user || user.isAnonymous) {
+    // We check !user to make sure the person has passed the login screen.
+    if (!user) {
         return <p>Please sign in to view your document history.</p>;
     }
     if (!documents || documents.length === 0) {

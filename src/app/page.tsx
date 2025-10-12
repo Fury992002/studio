@@ -23,10 +23,9 @@ import { Separator } from '@/components/ui/separator';
 import { Trash2, Save, History, PlusCircle } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { useAuthContext } from '@/context/AuthContext';
 
 
@@ -317,7 +316,6 @@ const EditDocumentLoader = ({ onDocumentLoad }: { onDocumentLoad: (docToEdit: Sa
 const PageContent = () => {
   const router = useRouter();
   const { toast } = useToast();
-  const auth = useAuth();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   
@@ -343,13 +341,6 @@ const PageContent = () => {
   // New item form state
   const [newItem, setNewItem] = useState<ItemData>(defaultNewItem);
   const [newItemErrors, setNewItemErrors] = useState<Record<string, string>>({});
-
-
-  // Sign in anonymously
-  useEffect(() => {
-    if (isUserLoading || user || !auth) return;
-    initiateAnonymousSignIn(auth);
-  }, [isUserLoading, user, auth]);
 
   // Callback for EditDocumentLoader to update the form
   const handleDocumentLoad = useCallback((docToEdit: SavedDocument) => {
@@ -807,5 +798,3 @@ export default function Home() {
         </Suspense>
     )
 }
-
-    
