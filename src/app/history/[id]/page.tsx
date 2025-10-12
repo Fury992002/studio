@@ -17,7 +17,6 @@ export default function SavedDocumentPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const firestore = useFirestore();
-  const mainRef = useRef<HTMLElement>(null);
   const invoicePreviewRef = useRef<HTMLDivElement>(null);
 
   const docRef = useMemoFirebase(() => {
@@ -28,33 +27,14 @@ export default function SavedDocumentPage() {
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
 
   const handlePrint = () => {
-    if (!invoicePreviewRef.current) return;
-
-    const invoiceHtml = invoicePreviewRef.current.innerHTML;
-    
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank', 'height=800,width=800');
-
-    if (printWindow) {
-      printWindow.document.write(invoiceHtml);
-      printWindow.document.close();
-      
-      // Use a timeout to ensure all content (especially images and fonts) is loaded
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-      }, 500);
-    } else {
-      alert('Please allow popups for this website to print the document.');
-    }
+    window.print();
   };
   
   useEffect(() => {
     if (documentData && searchParams.get('print') === 'true') {
        const timer = setTimeout(() => {
          handlePrint();
-       }, 1000); // Increased delay to ensure content is rendered
+       }, 1000); // Delay to ensure content is rendered
        return () => clearTimeout(timer);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,12 +153,9 @@ export default function SavedDocumentPage() {
         </tr>
     `).join('');
 
-    // This is a simplified placeholder replacement. For a more robust solution,
-    // consider a library like Handlebars.js on the client side.
     if (renderedHtml.match(itemsPlaceholderRegex)) {
        renderedHtml = renderedHtml.replace(itemsPlaceholderRegex, finalItemsHtml);
     } else {
-       // Fallback if the template structure changes
        const tbodyRegex = /<tbody>\s*<\/tbody>/;
        if(renderedHtml.match(tbodyRegex)) {
           renderedHtml = renderedHtml.replace(tbodyRegex, `<tbody>${finalItemsHtml}</tbody>`);
@@ -217,7 +194,7 @@ export default function SavedDocumentPage() {
   }
 
   return (
-    <main ref={mainRef} className="min-h-screen bg-gray-100 p-4">
+    <main className="min-h-screen bg-gray-100 p-4">
         <div className="container mx-auto mb-4 flex justify-between items-center no-print">
             <h1 className="text-2xl font-bold">{documentData.name}</h1>
             <div>

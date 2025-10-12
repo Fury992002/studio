@@ -157,21 +157,93 @@
 .explosion.r5 { background: #900c3f; }
 .explosion.r6 { background: #581845; }
 
+
+/* Print Styles */
 @media print {
-  body.printing > *:not(.print-container) {
-    display: none !important;
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+  body * {
+    visibility: hidden;
   }
 
-  body.printing .print-container {
-    display: block !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+  .invoice-preview-container, .invoice-preview-container * {
+    visibility: visible;
   }
 
+  .invoice-preview-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+  }
+  
   .no-print {
     display: none !important;
   }
+
+  /* Invoice specific styles for printing */
+  .invoice-container {
+      font-family: 'Poppins', sans-serif !important;
+      color: #333 !important;
+      margin: auto !important;
+      background: #fff !important;
+      border: 1px solid #eee !important;
+      box-shadow: none !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .invoice-container header {
+      position: relative !important;
+      height: 120px !important;
+      background: linear-gradient(135deg, #450000, #b30000 60%, #d32f2f) !important;
+      color: white !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 0 40px !important;
+      overflow: hidden !important;
+    }
+    .invoice-container header::after {
+      content: '' !important;
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 5px !important;
+      background: linear-gradient(to right, #ffcc00, #b30000) !important;
+    }
+    .invoice-container #header-details p { margin: 4px 0 !important; font-size: 14px !important; }
+    .invoice-container #header-details p:last-child { direction: ltr !important; }
+    .invoice-container #logo { height: 100px !important; object-fit: contain !important; border-radius: 0.5rem !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)) !important; }
+    .invoice-container #invoice-info-box { display: flex !important; justify-content: space-between !important; padding: 20px 40px !important; }
+    .invoice-container #invoice-info-box .invoice-info { width: 48% !important; }
+    .invoice-container #from, .invoice-container #to { line-height: 1.4 !important; }
+    .invoice-container .fromp { line-height: 2.2 !important; }
+    .invoice-container #from p, .invoice-container #to p { margin: 3px 0 !important; }
+    .invoice-container #from1, .invoice-container #to1 { color: #b30000 !important; font-weight: 700 !important; font-size: 15px !important; margin-bottom: 6px !important; display: inline-block !important; }
+    .invoice-container table { width: 90% !important; margin: 10px auto 20px auto !important; border-collapse: collapse !important; font-size: 13px !important; text-align: center !important; }
+    .invoice-container th { background-color: #b30000 !important; color: white !important; padding: 10px !important; }
+    .invoice-container table th:nth-last-child(1), .invoice-container table th:nth-last-child(2), .invoice-container table th:nth-last-child(3) { background-color: #2b2b2b !important; }
+    .invoice-container td { padding: 8px !important; border-bottom: 1px solid #eee !important; }
+    .invoice-container tr:nth-child(even) { background-color: #f4f4f4 !important; }
+    .invoice-container #totals-method { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; padding: 25px 40px !important; border-top: 2px solid #b30000 !important; }
+    .invoice-container #payment-terms { display: flex !important; flex-direction: column !important; width: 65% !important; gap: 1rem !important;}
+    .invoice-container #payment, .invoice-container #terms { font-size: 13px !important; }
+    .invoice-container #payment p, .invoice-container #terms p { white-space: pre-wrap !important; }
+    .invoice-container #payment strong, .invoice-container #terms strong { color: #b30000 !important; font-weight: 600 !important; font-size: 14px !important; }
+    .invoice-container #terms { background-color: transparent !important; border: none !important; padding: 0 !important; font-size: 13px !important; }
+    .invoice-container #totals-container { display: flex !important; flex-direction: column !important; gap: 20px !important; width: 60% !important; align-items: flex-end !important; }
+    .invoice-container .totals { background-color: #f2f2f2 !important; border: 1px solid #ddd !important; border-radius: 8px !important; padding: 15px 20px !important; width: 60% !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important; }
+    .invoice-container .totals p { margin: 5px 0 !important; font-size: 13px !important; display: flex !important; justify-content: space-between !important; }
+    .invoice-container .highlight-red { color: #b30000 !important; font-weight: 600 !important; }
+    .invoice-container footer { background-color: #2b2b2b !important; color: white !important; display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 10px 40px !important; font-size: 13px !important; position: relative !important; }
+    .invoice-container footer .footer-contact { display: flex !important; align-items: center !important; gap: 10px !important; }
+    .invoice-container footer .phone-numbers { display: flex !important; flex-direction: column !important; }
+    .invoice-container footer .footer-separator { width: 1px !important; background-color: white !important; height: 40px !important; margin: 0 20px !important; }
+    .invoice-container .data-value { font-weight: normal !important; margin-left: 8px !important; }
 }
