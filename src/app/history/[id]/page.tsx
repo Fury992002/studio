@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { 
@@ -17,6 +17,7 @@ export default function SavedDocumentPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const firestore = useFirestore();
+  const mainRef = useRef<HTMLElement>(null);
 
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -26,11 +27,18 @@ export default function SavedDocumentPage() {
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
 
   const handlePrint = () => {
-    if (!documentData) return;
+    if (!documentData || !mainRef.current) return;
+    
+    const printableElement = mainRef.current;
+    printableElement.classList.add('printing');
+
     const originalTitle = document.title;
     document.title = documentData.name;
+    
     window.print();
+    
     document.title = originalTitle;
+    printableElement.classList.remove('printing');
   };
   
   useEffect(() => {
@@ -148,7 +156,7 @@ export default function SavedDocumentPage() {
   if (isLoading) {
     return (
         <main className="min-h-screen bg-gray-100 p-4">
-            <div className="container mx-auto mb-4 flex justify-between items-center">
+            <div className="container mx-auto mb-4 flex justify-between items-center no-print">
                 <Skeleton className="h-8 w-1/4" />
                 <div className="flex space-x-2">
                     <Skeleton className="h-10 w-32" />
@@ -173,8 +181,8 @@ export default function SavedDocumentPage() {
   }
 
   return (
-    <main key={id} className="min-h-screen bg-gray-100 p-4">
-        <div className="container mx-auto mb-4 flex justify-between items-center">
+    <main key={id} ref={mainRef} className="min-h-screen bg-gray-100 p-4">
+        <div className="container mx-auto mb-4 flex justify-between items-center no-print">
             <h1 className="text-2xl font-bold">{documentData.name}</h1>
             <div>
                  <Button variant="outline" className="mr-2" onClick={handlePrint}>Print / Save as PDF</Button>
@@ -187,7 +195,7 @@ export default function SavedDocumentPage() {
                  </Button>
             </div>
         </div>
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container">
             <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
         </div>
     </main>
