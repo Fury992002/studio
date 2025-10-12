@@ -89,7 +89,7 @@ export type ClientData = z.infer<typeof clientSchema>;
 export type ItemData = z.infer<typeof itemSchema>;
 export type TotalsData = z.infer<typeof totalsSchema>;
 export type TermsData = z.infer<typeof termsSchema>;
-export type FullFormData = z;
+export type FullFormData = z.infer<typeof fullFormSchema>;
 
 export const INVOICE_TEMPLATE_HTML = `
 <!DOCTYPE html>
@@ -98,42 +98,6 @@ export const INVOICE_TEMPLATE_HTML = `
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Premium {{documentType}}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-    body { font-family: 'Poppins', sans-serif; color: #333; }
-    .invoice-container { width: 700px; margin: 0 auto; background: linear-gradient(to bottom, #fff, #f9f9fb); border: 1px solid #ddd; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-    header { position: relative; height: 120px; background: linear-gradient(135deg, #450000, #b30000 60%, #d32f2f); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; overflow: hidden; }
-    header::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(to right, #ffcc00, #b30000); }
-    #header-details p { margin: 4px 0; font-size: 14px; }
-    #header-details p:last-child { direction: ltr; } /* Ensure date is LTR */
-    #logo { height: 100px; object-fit: contain; border-radius: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-    #invoice-info-box { display: flex; justify-content: space-between; padding: 10px 40px; }
-    #invoice-info-box .invoice-info { width: 48%; }
-    #from, #to { line-height: 1.4; }
-    .fromp { line-height: 2.2; }
-    #from p, #to p { margin: 3px 0; }
-    #from1, #to1 { color: #b30000; font-weight: 700; font-size: 15px; margin-bottom: 6px; display: inline-block; }
-    table { width: 90%; margin: 10px auto 20px auto; border-collapse: collapse; font-size: 13px; text-align: center; }
-    th { background-color: #b30000; color: white; padding: 10px; }
-    table th:nth-last-child(1), table th:nth-last-child(2), table th:nth-last-child(3) { background-color: #2b2b2b; }
-    td { padding: 8px; border-bottom: 1px solid #eee; }
-    tr:nth-child(even) { background-color: #f4f4f4; }
-    #totals-method { display: flex; justify-content: space-between; align-items: flex-start; padding: 25px 40px; border-top: 2px solid #b30000; }
-    #payment-terms { display: flex; flex-direction: column; width: 65%; gap: 1rem;}
-    #payment, #terms { font-size: 13px; }
-    #payment p, #terms p { white-space: pre-wrap; }
-    #payment strong, #terms strong { color: #b30000; font-weight: 600; font-size: 14px; }
-    #terms { background-color: transparent; border: none; padding: 0; font-size: 13px; }
-    #totals-container { display: flex; flex-direction: column; gap: 20px; width: 60%; align-items: flex-end; }
-    .totals { background-color: #f2f2f2; border: 1px solid #ddd; border-radius: 8px; padding: 15px 20px; width: 60%; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .totals p { margin: 5px 0; font-size: 13px; display: flex; justify-content: space-between; }
-    .highlight-red { color: #b30000; font-weight: 600; }
-    footer { background-color: #2b2b2b; color: white; display: flex; align-items: center; justify-content: space-between; padding: 10px 40px; font-size: 13px; position: relative; }
-    footer .footer-contact { display: flex; align-items: center; gap: 10px; }
-    footer .phone-numbers { display: flex; flex-direction: column; }
-    footer .footer-separator { width: 1px; background-color: white; height: 40px; margin: 0 20px; }
-    .data-value { font-weight: normal; margin-left: 8px; }
-  </style>
 </head>
 <body>
   <div class="invoice-container">
@@ -757,7 +721,7 @@ const PageContent = () => {
         <div className="w-2/3">
           <div className="sticky top-4">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
+              <div className="invoice-container" dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
             </div>
           </div>
         </div>
