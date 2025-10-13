@@ -5,13 +5,13 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { 
   type SavedDocument, 
-  INVOICE_TEMPLATE_HTML
 } from '../../page';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label";
+import { INVOICE_TEMPLATE_HTML } from '../../page';
 
 export default function SavedDocumentPage() {
   const params = useParams();
@@ -42,7 +42,10 @@ export default function SavedDocumentPage() {
 
     window.addEventListener('afterprint', handleAfterPrint);
     
-    window.print();
+    // Use a small timeout to allow the document title to update before printing
+    setTimeout(() => {
+      window.print();
+    }, 0);
   };
   
   useEffect(() => {
@@ -249,3 +252,5 @@ export default function SavedDocumentPage() {
     </main>
   );
 }
+
+    
