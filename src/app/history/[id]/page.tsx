@@ -9,8 +9,6 @@ import {
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label";
 import { INVOICE_TEMPLATE_HTML } from '../../page';
 
 export default function SavedDocumentPage() {
@@ -19,8 +17,6 @@ export default function SavedDocumentPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const firestore = useFirestore();
-  const invoicePreviewRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(100);
 
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -212,27 +208,8 @@ export default function SavedDocumentPage() {
             </div>
         </div>
 
-        <div className="max-w-xs mx-auto my-4 p-4 space-y-4 border rounded-lg bg-white no-print">
-            <div>
-              <Label htmlFor="scale-slider" className="mb-2 block text-center">Zoom: {scale}%</Label>
-              <Slider
-                  id="scale-slider"
-                  min={50}
-                  max={150}
-                  step={5}
-                  value={[scale]}
-                  onValueChange={(value) => setScale(value[0])}
-              />
-            </div>
-        </div>
-        
-        <div 
-          className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container"
-          style={{
-            zoom: `${scale / 100}`
-          }}
-        >
-            <div ref={invoicePreviewRef} dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container">
+            <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
         </div>
     </main>
   );
