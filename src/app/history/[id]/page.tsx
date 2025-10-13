@@ -21,7 +21,6 @@ export default function SavedDocumentPage() {
   const firestore = useFirestore();
   const invoicePreviewRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(100);
-  const [margin, setMargin] = useState(0);
 
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -225,28 +224,15 @@ export default function SavedDocumentPage() {
                   onValueChange={(value) => setScale(value[0])}
               />
             </div>
-            <div>
-              <Label htmlFor="margin-slider" className="mb-2 block text-center">Margin: {margin}px</Label>
-              <Slider
-                  id="margin-slider"
-                  min={0}
-                  max={50}
-                  step={5}
-                  value={[margin]}
-                  onValueChange={(value) => setMargin(value[0])}
-              />
-            </div>
         </div>
         
-        <div className="printable-area" style={{ padding: `${margin}px` }}>
-          <div 
-            className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container"
-            style={{
-              zoom: `${scale / 100}`
-            }}
-          >
-              <div ref={invoicePreviewRef} dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
-          </div>
+        <div 
+          className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container printable-area"
+          style={{
+            zoom: `${scale / 100}`
+          }}
+        >
+            <div ref={invoicePreviewRef} dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
         </div>
     </main>
   );
