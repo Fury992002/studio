@@ -30,22 +30,7 @@ export default function SavedDocumentPage() {
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
 
   const handlePrint = () => {
-    if (!documentData) return;
-    
-    const originalTitle = document.title;
-    document.title = documentData.name;
-
-    const handleAfterPrint = () => {
-      document.title = originalTitle;
-      window.removeEventListener('afterprint', handleAfterPrint);
-    };
-
-    window.addEventListener('afterprint', handleAfterPrint);
-    
-    // Use a small timeout to allow the document title to update before printing
-    setTimeout(() => {
-      window.print();
-    }, 0);
+    window.print();
   };
   
   useEffect(() => {
@@ -252,5 +237,3 @@ export default function SavedDocumentPage() {
     </main>
   );
 }
-
-    
