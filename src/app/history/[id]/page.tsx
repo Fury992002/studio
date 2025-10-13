@@ -11,7 +11,7 @@ import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from "@/components/ui/slider"
-import { Label } from '@/components/ui/label';
+import { Label } from "@/components/ui/label";
 
 export default function SavedDocumentPage() {
   const params = useParams();
@@ -227,8 +227,7 @@ export default function SavedDocumentPage() {
         <div 
           className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container"
           style={{
-            transform: `scale(${scale / 100})`,
-            transformOrigin: 'top',
+            zoom: `${scale / 100}`
           }}
         >
             <div ref={invoicePreviewRef} dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
@@ -236,5 +235,3 @@ export default function SavedDocumentPage() {
     </main>
   );
 }
-
-    
