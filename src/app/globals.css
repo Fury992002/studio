@@ -164,20 +164,23 @@
     visibility: hidden;
   }
 
-  .invoice-preview-container, .invoice-preview-container * {
+  .printable-area, .printable-area * {
     visibility: visible;
   }
-
-  .invoice-preview-container {
+  
+  .printable-area {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
-    height: auto;
-    margin: 0;
-    padding: 0;
-    box-shadow: none;
-    border: none;
+    height: 100%;
+  }
+
+  .invoice-preview-container {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    max-width: 100% !important;
   }
   
   .no-print {

@@ -238,7 +238,7 @@ export default function SavedDocumentPage() {
             </div>
         </div>
         
-        <div style={{ padding: `${margin}px` }}>
+        <div className="printable-area" style={{ padding: `${margin}px` }}>
           <div 
             className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container"
             style={{
