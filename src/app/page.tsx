@@ -98,6 +98,70 @@ export const INVOICE_TEMPLATE_HTML = `
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Premium {{documentType}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .invoice-container {
+      font-family: 'Poppins', sans-serif;
+      color: #333;
+      margin: auto;
+      background: #fff;
+      border: 1px solid #eee;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .invoice-container header {
+      position: relative;
+      height: 120px;
+      background: linear-gradient(135deg, #450000, #b30000 60%, #d32f2f);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      overflow: hidden;
+    }
+    .invoice-container header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(to right, #ffcc00, #b30000);
+    }
+    .invoice-container #header-details p { margin: 4px 0; font-size: 14px; }
+    .invoice-container #header-details p:last-child { direction: ltr; }
+    .invoice-container #logo { height: 100px; object-fit: contain; border-radius: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+    .invoice-container #invoice-info-box { display: flex; justify-content: space-between; padding: 20px 40px; }
+    .invoice-container #invoice-info-box .invoice-info { width: 48%; }
+    .invoice-container #from, .invoice-container #to { line-height: 1.4; }
+    .invoice-container .fromp { line-height: 2.2; }
+    .invoice-container #from p, .invoice-container #to p { margin: 3px 0; }
+    .invoice-container #from1, .invoice-container #to1 { color: #b30000; font-weight: 700; font-size: 15px; margin-bottom: 6px; display: inline-block; }
+    .invoice-container table { width: 90%; margin: 10px auto 20px auto; border-collapse: collapse; font-size: 13px; text-align: center; }
+    .invoice-container th { background-color: #b30000; color: white; padding: 10px; }
+    .invoice-container table th:nth-last-child(1), .invoice-container table th:nth-last-child(2), .invoice-container table th:nth-last-child(3) { background-color: #2b2b2b; }
+    .invoice-container td { padding: 8px; border-bottom: 1px solid #eee; }
+    .invoice-container tr:nth-child(even) { background-color: #f4f4f4; }
+    .invoice-container #totals-method { display: flex; justify-content: space-between; align-items: flex-start; padding: 25px 40px; border-top: 2px solid #b30000; }
+    .invoice-container #payment-terms { display: flex; flex-direction: column; width: 65%; gap: 1rem;}
+    .invoice-container #payment, .invoice-container #terms { font-size: 13px; }
+    .invoice-container #payment p, .invoice-container #terms p { white-space: pre-wrap; }
+    .invoice-container #payment strong, .invoice-container #terms strong { color: #b30000; font-weight: 600; font-size: 14px; }
+    .invoice-container #terms { background-color: transparent; border: none; padding: 0; font-size: 13px; }
+    .invoice-container #totals-container { display: flex; flex-direction: column; gap: 20px; width: 60%; align-items: flex-end; }
+    .invoice-container .totals { background-color: #f2f2f2; border: 1px solid #ddd; border-radius: 8px; padding: 15px 20px; width: 60%; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .invoice-container .totals p { margin: 5px 0; font-size: 13px; display: flex; justify-content: space-between; }
+    .invoice-container .highlight-red { color: #b30000; font-weight: 600; }
+    .invoice-container footer { background-color: #2b2b2b; color: white; display: flex; align-items: center; justify-content: space-between; padding: 10px 40px; font-size: 13px; position: relative; }
+    .invoice-container footer .footer-contact { display: flex; align-items: center; gap: 10px; }
+    .invoice-container footer .phone-numbers { display: flex; flex-direction: column; }
+    .invoice-container footer .footer-separator { width: 1px; background-color: white; height: 40px; margin: 0 20px; }
+    .invoice-container .data-value { font-weight: normal; margin-left: 8px; }
+  </style>
 </head>
 <body>
   <div class="invoice-container">
@@ -719,8 +783,8 @@ const PageContent = () => {
         </div>
 
         <div className="w-full lg:w-2/3">
-          <div className="sticky top-4">
-            <div className="bg-white rounded-lg shadow-lg overflow-x-auto">
+          <div className="sticky top-4 overflow-x-auto">
+            <div className="bg-white rounded-lg shadow-lg">
               <div 
                 className="invoice-container min-w-[800px]" 
                 dangerouslySetInnerHTML={{ __html: renderInvoice() }} 
