@@ -30,6 +30,18 @@ export default function SavedDocumentPage() {
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
 
   const handlePrint = () => {
+    if (!documentData) return;
+    
+    const originalTitle = document.title;
+    document.title = documentData.name;
+
+    const handleAfterPrint = () => {
+      document.title = originalTitle;
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+
+    window.addEventListener('afterprint', handleAfterPrint);
+    
     window.print();
   };
   
@@ -227,7 +239,7 @@ export default function SavedDocumentPage() {
         </div>
         
         <div 
-          className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container printable-area"
+          className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container"
           style={{
             zoom: `${scale / 100}`
           }}
