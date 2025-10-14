@@ -224,11 +224,15 @@ export default function SavedDocumentPage() {
             </div>
         </div>
 
-        <div 
-          className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container"
-          style={{ zoom: `${zoom / 100}` }}
-        >
-            <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
+        <div className="overflow-auto">
+             <div 
+              className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container"
+              style={{
+                  zoom: `${zoom / 100}`,
+              }}
+            >
+                <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
+            </div>
         </div>
     </main>
   );

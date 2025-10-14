@@ -160,26 +160,7 @@
 
 /* Print Styles */
 @media print {
-  body, html {
-    margin: 0 !important;
-    padding: 0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
   .no-print {
     display: none !important;
-  }
-
-  .invoice-preview-container {
-    display: block !important;
-  }
-
-  .invoice-container {
-    margin: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    width: 100% !important;
-    min-width: 0 !important;
   }
 }
