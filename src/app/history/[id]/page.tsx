@@ -10,6 +10,8 @@ import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { INVOICE_TEMPLATE_HTML } from '../../page';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 
 export default function SavedDocumentPage() {
   const params = useParams();
@@ -17,6 +19,8 @@ export default function SavedDocumentPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const firestore = useFirestore();
+
+  const [zoom, setZoom] = useState(100);
 
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -196,7 +200,19 @@ export default function SavedDocumentPage() {
     <main className="min-h-screen bg-gray-100 p-4">
         <div className="container mx-auto mb-4 flex justify-between items-center no-print">
             <h1 className="text-2xl font-bold">{documentData.name}</h1>
-            <div>
+            <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                    <Label htmlFor="zoom-slider">Zoom: {zoom}%</Label>
+                    <Slider
+                        id="zoom-slider"
+                        min={50}
+                        max={150}
+                        step={5}
+                        value={[zoom]}
+                        onValueChange={(value) => setZoom(value[0])}
+                        className="w-32"
+                    />
+                </div>
                  <Button variant="outline" className="mr-2" onClick={handlePrint}>Print / Save as PDF</Button>
                  <Button
                     onClick={() => {
@@ -208,7 +224,10 @@ export default function SavedDocumentPage() {
             </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container">
+        <div 
+          className="bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto invoice-preview-container"
+          style={{ zoom: `${zoom / 100}` }}
+        >
             <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
         </div>
     </main>
