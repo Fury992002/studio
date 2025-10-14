@@ -88,7 +88,7 @@ export type InvoiceDetailsData = z.infer<typeof invoiceDetailsSchema>;
 export type ClientData = z.infer<typeof clientSchema>;
 export type ItemData = z.infer<typeof itemSchema>;
 export type TotalsData = z.infer<typeof totalsSchema>;
-export type TermsData = zinfer<typeof termsSchema>;
+export type TermsData = z.infer<typeof termsSchema>;
 export type FullFormData = z.infer<typeof fullFormSchema>;
 
 export const INVOICE_TEMPLATE_HTML = `
@@ -132,7 +132,7 @@ export const INVOICE_TEMPLATE_HTML = `
     }
     .invoice-container #header-details p { margin: 4px 0; font-size: 14px; }
     .invoice-container #header-details p:last-child { direction: ltr; }
-    .invoice-container #logo { height: 100px; object-fit: contain; border-radius: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+    .invoice-container #logo { height: 100px; width: auto; object-fit: contain; border-radius: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
     .invoice-container #invoice-info-box { display: flex; justify-content: space-between; padding: 20px 40px; }
     .invoice-container #invoice-info-box .invoice-info { width: 48%; }
     .invoice-container #from, .invoice-container #to { line-height: 1.4; }
