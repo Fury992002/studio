@@ -226,7 +226,7 @@ export default function SavedDocumentPage() {
 
         <div className="overflow-auto">
              <div 
-              className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container"
+              className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container origin-top"
               style={{
                   zoom: `${zoom / 100}`,
               }}
