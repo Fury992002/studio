@@ -45,34 +45,29 @@ export default function SavedDocumentPage() {
     
     const timer = setTimeout(() => {
         window.print();
-    }, 100); // A small delay is often good practice
+    }, 100);
 
-    // Use onafterprint to restore the title, which is more reliable
     const afterPrint = () => {
         document.title = originalDocTitle;
         window.removeEventListener('afterprint', afterPrint);
     };
     window.addEventListener('afterprint', afterPrint);
     
-    // Fallback in case onafterprint doesn't fire
     setTimeout(() => {
         if (document.title === documentData.name) {
              document.title = originalDocTitle;
         }
         window.removeEventListener('afterprint', afterPrint);
-    }, 2000); // Restore after 2 seconds anyway
+    }, 2000);
   };
 
-  // Effect to handle automatic printing from history page
   useEffect(() => {
     if (documentData && searchParams.get('print') === 'true') {
         handlePrint();
     }
-  // We only want this effect for the initial auto-print action
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentData, searchParams]);
 
-  // Reset title when component unmounts
   useEffect(() => {
     return () => {
       if (originalTitle) {
@@ -186,7 +181,6 @@ export default function SavedDocumentPage() {
     renderedHtml = renderedHtml.replace('{{calculations.shipping}}', calculations.shipping);
     renderedHtml = renderedHtml.replace('{{calculations.amountDue}}', calculations.amountDue);
 
-    // Replace the each loop for items with a simple placeholder, as we're injecting the rows directly
     const itemsPlaceholderRegex = /\{\{#each items\}\}[\s\S]*?\{\{\/each\}\}/g;
     const finalItemsHtml = items.map(item => `
         <tr>
@@ -269,17 +263,12 @@ export default function SavedDocumentPage() {
         </div>
 
         <div 
-          className="overflow-auto"
-          style={{
-              transform: `scale(${scale / 100})`,
-              transformOrigin: 'top',
-          }}
+            className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container"
+            style={{
+                zoom: scale / 100,
+            }}
         >
-             <div 
-              className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container"
-            >
-                <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
-            </div>
+            <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
         </div>
     </main>
   );
