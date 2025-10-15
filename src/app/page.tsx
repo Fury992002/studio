@@ -197,7 +197,7 @@ export const INVOICE_TEMPLATE_HTML = `
         <p><strong>Designer:</strong><span class="data-value">{{client.designer}}</span></p>
         <p><strong>Area:</strong><span class="data-value">{{client.area}}</span></p>
         <p><strong>Location:</strong><span class="data-value">{{client.location}}</span></p>
-        <p><strong>Contact person:</strong><span class="data-value">{{client.contactPerson}}</span></p>p>
+        <p><strong>Contact person:</strong><span class="data-value">{{client.contactPerson}}</span></p>
         <p><strong>Number:</strong><span class="data-value">{{client.number}}</span></p>
       </div>
     </div>
@@ -853,5 +853,3 @@ export default function Home() {
         </Suspense>
     )
 }
-
-    
