@@ -272,7 +272,7 @@ export default function SavedDocumentPage() {
              <div 
               className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container origin-top"
               style={{
-                  transform: `scale(${scale / 100})`,
+                  transform: `scaleY(${scale / 100})`,
                   transformOrigin: 'top',
               }}
             >
