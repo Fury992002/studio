@@ -160,9 +160,8 @@
 
 /* Print Styles */
 @media print {
-  body, html {
-    margin: 0 !important;
-    padding: 0 !important;
+  body, main {
+    background: none !important;
   }
   .no-print {
     display: none !important;
@@ -170,8 +169,5 @@
   .invoice-container {
     box-shadow: none !important;
     border: none !important;
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
   }
 }
