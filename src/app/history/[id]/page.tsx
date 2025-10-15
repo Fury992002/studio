@@ -12,7 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { INVOICE_TEMPLATE_HTML } from '../../page';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { useToast } from '@/hooks/use-toast';
 
 export default function SavedDocumentPage() {
   const params = useParams();
@@ -20,7 +19,6 @@ export default function SavedDocumentPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const firestore = useFirestore();
-  const { toast } = useToast();
 
   const [zoom, setZoom] = useState(100);
   const [originalTitle, setOriginalTitle] = useState('');
@@ -41,35 +39,34 @@ export default function SavedDocumentPage() {
   
   const handlePrint = () => {
     if (!documentData) return;
+
+    const originalDocTitle = document.title;
     document.title = documentData.name;
-    toast({
-      title: "Ready to Print",
-      description: "Press Ctrl+P (or Cmd+P on Mac) to print/save with the correct name.",
-      duration: 8000, 
-    });
+    
+    const timer = setTimeout(() => {
+        window.print();
+    }, 100); // A small delay is often good practice
+
+    // Use onafterprint to restore the title, which is more reliable
+    const afterPrint = () => {
+        document.title = originalDocTitle;
+        window.removeEventListener('afterprint', afterPrint);
+    };
+    window.addEventListener('afterprint', afterPrint);
+    
+    // Fallback in case onafterprint doesn't fire
+    setTimeout(() => {
+        if (document.title === documentData.name) {
+             document.title = originalDocTitle;
+        }
+        window.removeEventListener('afterprint', afterPrint);
+    }, 2000); // Restore after 2 seconds anyway
   };
 
-  // Effect to handle automatic printing from history page and reset title
+  // Effect to handle automatic printing from history page
   useEffect(() => {
     if (documentData && searchParams.get('print') === 'true') {
-      const originalDocTitle = document.title;
-      document.title = documentData.name;
-      const timer = setTimeout(() => {
-        window.print();
-      }, 500); // Small delay to ensure title is set
-
-      // Use onafterprint to reset the title
-      const afterPrint = () => {
-        document.title = originalDocTitle;
-        window.removeEventListener('afterprint', afterPrint);
-      };
-      window.addEventListener('afterprint', afterPrint);
-      
-      return () => {
-        clearTimeout(timer);
-        document.title = originalDocTitle;
-        window.removeEventListener('afterprint', afterPrint);
-      };
+        handlePrint();
     }
   // We only want this effect for the initial auto-print action
   // eslint-disable-next-line react-hooks/exhaustive-deps
