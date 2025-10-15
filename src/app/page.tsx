@@ -116,9 +116,9 @@ export const INVOICE_TEMPLATE_HTML = `
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
     }
     .invoice-container.quotation-theme {
-      --theme-primary-dark: #0d47a1;
-      --theme-primary-main: #1976d2;
-      --theme-primary-light: #2196f3;
+      --theme-primary-dark: #003366;
+      --theme-primary-main: #005A9C;
+      --theme-primary-light: #007BFF;
       --theme-accent: #ffc107;
     }
     .invoice-container header {
@@ -853,3 +853,5 @@ export default function Home() {
         </Suspense>
     )
 }
+
+    
