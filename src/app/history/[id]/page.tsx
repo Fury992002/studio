@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { INVOICE_TEMPLATE_HTML } from '../../page';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SavedDocumentPage() {
   const params = useParams();
@@ -19,8 +20,17 @@ export default function SavedDocumentPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const [zoom, setZoom] = useState(100);
+  const [originalTitle, setOriginalTitle] = useState('');
+
+  // Store original document title on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOriginalTitle(document.title);
+    }
+  }, []);
 
   const docRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -28,20 +38,58 @@ export default function SavedDocumentPage() {
   }, [firestore, id]);
 
   const { data: documentData, isLoading } = useDoc<SavedDocument>(docRef);
-
-  const handlePrint = () => {
-    window.print();
-  };
   
+  const handlePrint = () => {
+    if (!documentData) return;
+
+    // 1. Set the document title to the invoice name
+    document.title = documentData.name;
+
+    // 2. Inform the user to print manually
+    toast({
+      title: "Ready to Print",
+      description: "Press Ctrl+P (or Cmd+P on Mac) to print/save with the correct name.",
+      duration: 8000, // Give user some time to see it
+    });
+
+    // We don't call window.print() automatically to avoid race conditions.
+    // The title will be reset when the component unmounts or navigates away.
+  };
+
+  // Effect to handle automatic printing from history page and reset title
   useEffect(() => {
     if (documentData && searchParams.get('print') === 'true') {
-       const timer = setTimeout(() => {
-         handlePrint();
-       }, 1000); // Delay to ensure content is rendered
-       return () => clearTimeout(timer);
+      const originalDocTitle = document.title;
+      document.title = documentData.name;
+      const timer = setTimeout(() => {
+        window.print();
+      }, 500); // Small delay to ensure title is set
+
+      // Use onafterprint to reset the title
+      const afterPrint = () => {
+        document.title = originalDocTitle;
+        window.removeEventListener('afterprint', afterPrint);
+      };
+      window.addEventListener('afterprint', afterPrint);
+      
+      return () => {
+        clearTimeout(timer);
+        document.title = originalDocTitle;
+        window.removeEventListener('afterprint', afterPrint);
+      };
     }
+  // We only want this effect for the initial auto-print action
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentData, searchParams]);
+
+  // Reset title when component unmounts
+  useEffect(() => {
+    return () => {
+      if (originalTitle) {
+        document.title = originalTitle;
+      }
+    };
+  }, [originalTitle]);
 
 
   const calculations = useMemo(() => {
