@@ -273,6 +273,7 @@ export default function SavedDocumentPage() {
               className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container origin-top"
               style={{
                   transform: `scale(${scale / 100})`,
+                  transformOrigin: 'top',
               }}
             >
                 <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
