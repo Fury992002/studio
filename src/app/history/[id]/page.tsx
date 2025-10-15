@@ -41,19 +41,12 @@ export default function SavedDocumentPage() {
   
   const handlePrint = () => {
     if (!documentData) return;
-
-    // 1. Set the document title to the invoice name
     document.title = documentData.name;
-
-    // 2. Inform the user to print manually
     toast({
       title: "Ready to Print",
       description: "Press Ctrl+P (or Cmd+P on Mac) to print/save with the correct name.",
-      duration: 8000, // Give user some time to see it
+      duration: 8000, 
     });
-
-    // We don't call window.print() automatically to avoid race conditions.
-    // The title will be reset when the component unmounts or navigates away.
   };
 
   // Effect to handle automatic printing from history page and reset title
@@ -153,6 +146,12 @@ export default function SavedDocumentPage() {
     const docType = invoiceDetailsData.documentType || 'Invoice';
     renderedHtml = renderedHtml.replace(/\{\{documentType\}\}/g, docType);
     
+    if (docType === 'Quotation') {
+      renderedHtml = renderedHtml.replace('{{themeClass}}', 'quotation-theme');
+    } else {
+      renderedHtml = renderedHtml.replace('{{themeClass}}', '');
+    }
+
     const invoiceNo = [invoiceDetailsData.invoiceNo1, invoiceDetailsData.invoiceNo2, invoiceDetailsData.invoiceNo3].filter(Boolean).join('-');
     renderedHtml = renderedHtml.replace('{{invoice.number}}', invoiceNo || '');
     renderedHtml = renderedHtml.replace('{{invoice.date}}', formatDate(invoiceDetailsData.date) || '');
@@ -276,7 +275,7 @@ export default function SavedDocumentPage() {
              <div 
               className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container origin-top"
               style={{
-                  zoom: `${zoom / 100}`,
+                  transform: `scale(${zoom / 100})`,
               }}
             >
                 <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />
