@@ -20,7 +20,7 @@ export default function SavedDocumentPage() {
   const id = params.id as string;
   const firestore = useFirestore();
 
-  const [zoom, setZoom] = useState(100);
+  const [scale, setScale] = useState(100);
   const [originalTitle, setOriginalTitle] = useState('');
 
   // Store original document title on mount
@@ -246,14 +246,14 @@ export default function SavedDocumentPage() {
             <h1 className="text-2xl font-bold">{documentData.name}</h1>
             <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                    <Label htmlFor="zoom-slider">Zoom: {zoom}%</Label>
+                    <Label htmlFor="scale-slider">Scale: {scale}%</Label>
                     <Slider
-                        id="zoom-slider"
+                        id="scale-slider"
                         min={50}
                         max={150}
                         step={5}
-                        value={[zoom]}
-                        onValueChange={(value) => setZoom(value[0])}
+                        value={[scale]}
+                        onValueChange={(value) => setScale(value[0])}
                         className="w-32"
                     />
                 </div>
@@ -272,7 +272,7 @@ export default function SavedDocumentPage() {
              <div 
               className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto invoice-container origin-top"
               style={{
-                  transform: `scale(${zoom / 100})`,
+                  transform: `scale(${scale / 100})`,
               }}
             >
                 <div dangerouslySetInnerHTML={{ __html: renderInvoice() }} />

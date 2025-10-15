@@ -160,6 +160,9 @@
 
 /* Print Styles */
 @media print {
+  @page {
+    margin: 0;
+  }
   body, main {
     background: none !important;
   }
@@ -169,5 +172,6 @@
   .invoice-container {
     box-shadow: none !important;
     border: none !important;
+    margin: 0 !important;
   }
 }
